@@ -220,6 +220,9 @@ glad_LIB_DEPENDS:STATIC=
 //The directory containing a CMake configuration file for glfw3.
 glfw3_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/glfw3
 
+//The directory containing a CMake configuration file for glm.
+glm_DIR:PATH=/usr/lib/cmake/glm
+
 //Value Computed by CMake
 keypoint_BINARY_DIR:STATIC=/media/pavithran/DATA/CPCV/multiview/gl_window
 

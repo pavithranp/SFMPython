@@ -6,7 +6,7 @@
         {
             "type": "shell",
             "label": "gcc build active file",
-            "command": "g++ test.cpp -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl  && ./a.out",
+            "command": "cmake . && make && ./test1",
        
           
             "problemMatcher": [
