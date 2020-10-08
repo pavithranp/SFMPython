@@ -6,7 +6,7 @@
         {
             "type": "shell",
             "label": "gcc build active file",
-            "command": "g++ test.cpp -lGL -lGLU -lglut && ./a.out",
+            "command": "g++ test.cpp -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl  && ./a.out",
        
           
             "problemMatcher": [
