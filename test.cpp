@@ -9,6 +9,7 @@ void processInput(GLFWwindow *window);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+float delta_time, last_time = 0;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -22,7 +23,6 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
-
 int main()
 {
     // glfw: initialize and configure
@@ -45,6 +45,7 @@ int main()
         glfwTerminate();
         return -1;
     }
+    
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -100,9 +101,9 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
+         -0.5f, -0.5f, 0.0f, // left  
          0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
+         0.0f,  0.5f, 0.0f,  // top   
     }; 
 
     unsigned int VBO, VAO;
@@ -132,6 +133,9 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        float timeValue = glfwGetTime();
+        delta_time = timeValue - last_time;
+        last_time = timeValue;
         // input
         // -----
         processInput(window);
@@ -169,8 +173,9 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+            glfwSetWindowShouldClose(window, true);}
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
