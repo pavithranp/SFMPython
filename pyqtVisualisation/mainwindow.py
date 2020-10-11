@@ -4,8 +4,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
+import numpy
+from PIL import Image
 import math
 from PyQt5 import QtCore, QtWidgets
+import pygame
 
 
 class MainWindow(QWidget):
@@ -22,6 +25,7 @@ class MainWindow(QWidget):
 class glWidget(QGLWidget):
 
     def __init__(self, parent):
+        self.picture = "ozil.png"
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
         self.cubeVertices = (
@@ -31,6 +35,7 @@ class glWidget(QGLWidget):
         self.cubeEdges = (
             (0, 1), (0, 3), (0, 4), (1, 2), (1, 7), (2, 5), (2, 3), (3, 6), (4, 6), (4, 7), (5, 6), (5, 7))
         self.cubeQuads = ((0, 3, 6, 4), (2, 5, 6, 3), (1, 2, 5, 7), (1, 0, 4, 7), (7, 4, 6, 5), (2, 3, 0, 1))
+
 
     def wireCube(self):
         glBegin(GL_LINES)
@@ -46,17 +51,34 @@ class glWidget(QGLWidget):
                 glVertex3fv(self.cubeVertices[cubeVertex])
         glEnd()
 
+    def image_load(self,lox,loy,loz):
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3f(-1.0+lox, -1.0+loy, 1.0+loz)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3f(1.0+lox, -1.0+loy, 1.0+loz)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3f(1.0+lox, 1.0+loy, 1.0+loz)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3f(-1.0+lox, 1.0+loy, 1.0+loz)
+        glEnd()
+
     def paintGL(self):
+        self.read_texture()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        glTranslatef(-0.0, 0.0, -2.0)
-        # glRotatef(10,10,10,10)
-        glColor3f(1.0, 1.5, 0.0)
-        glPolygonMode(GL_FRONT, GL_FILL)
+        glTranslatef(-0.0, 0.0, -10.0)
 
-        self.wireCube()
-        # self.solidCube()
+        # glRotatef(10,10,10,10)
+        #glColor3f(1.0, 1.5, 0.0)
+
+        self.image_load(1,1,1)
+        self.image_load(2, 1, 1)
+        #self.wireCube()
+        #self.solidCube()
         glFlush()
+
+
 
     def initializeGL(self):
         glClearDepth(1.0)
@@ -94,6 +116,25 @@ class glWidget(QGLWidget):
         # nothing to be done here.
         print("released")
         pass
+
+    def read_texture(self):
+        textureSurface = pygame.image.load('ozil.png')
+        textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
+        width = textureSurface.get_width()
+        height = textureSurface.get_height()
+
+        glEnable(GL_TEXTURE_2D)
+        texid = glGenTextures(1)
+
+        glBindTexture(GL_TEXTURE_2D, texid)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE, textureData)
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        return texid
 
 
 if __name__ == '__main__':
