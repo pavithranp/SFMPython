@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
-import numpy
+import numpy as np
 from PIL import Image
 import math
 from PyQt5 import QtCore, QtWidgets
@@ -25,9 +25,23 @@ class MainWindow(QWidget):
 class glWidget(QGLWidget):
 
     def __init__(self, parent):
+        self.action_keymap = {
+            'a': lambda: glTranslate(-1, 0, 0),
+            'd': lambda: glTranslate( 1, 0, 0),
+            'w': lambda: glTranslate( 0, 1, 0),
+            's': lambda: glTranslate( 0,-1, 0),
+
+            # 'a': lambda: glRotate(-5, 0, 1, 0),
+            # 'd': lambda: glRotate(5, 0, 1, 0),
+            # 'W': lambda: glRotate(-5, 1, 0, 0),
+            # 'S': lambda: glRotate( 5, 1, 0, 0),
+        }
         self.picture = "ozil.png"
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
+        main_camera_translation = np.zeros(3)
+        main_camera_rotation = np.zeros(3)
+
         self.cubeVertices = (
             (0.5, 0.5, 0.5), (0.5, 0.5, -0.5), (0.5, -0.5, -0.5), (0.5, -0.5, 0.5), (-0.5, 0.5, 0.5),
             (-0.5, -0.5, -0.5),
@@ -53,6 +67,10 @@ class glWidget(QGLWidget):
 
     def image_load(self,lox,loy,loz,picture):
         self.read_texture(picture)
+        glPushMatrix()
+        glRotatef(30, 1.0, 0.0, 1.0)
+        glTranslatef(-250, -250, 0.0)
+        glPopMatrix()
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
         glVertex3f(-1.0+lox, -1.0+loy, 1.0+loz)
@@ -64,12 +82,18 @@ class glWidget(QGLWidget):
         glVertex3f(-1.0+lox, 1.0+loy, 1.0+loz)
         glEnd()
 
+    def keyPressEvent(self, event):
+        action = self.action_keymap.get(str(event.text()))
+        if action:
+            action()
+        self.updateGL()
+
     def paintGL(self):
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         #glLoadIdentity()
         glTranslatef(-0.0, 0.0, -5.0)
-
+        #glRotatef(10, 10, 10, 10)
         # glRotatef(10,10,10,10)
         #glColor3f(1.0, 1.5, 0.0)
 
