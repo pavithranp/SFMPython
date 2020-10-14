@@ -2,12 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtOpenGL import *
-import numpy as np
-from PIL import Image
-import math
-from PyQt5 import QtCore, QtWidgets
 import pygame
 
 
@@ -36,21 +31,8 @@ class glWidget(QGLWidget):
             'w': [1,0],
             's': [-1,0],
         }
-
-        self.picture = "ozil.png"
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
-        main_camera_translation = np.zeros(3)
-        main_camera_rotation = np.zeros(3)
-
-        self.cubeVertices = (
-            (0.5, 0.5, 0.5), (0.5, 0.5, -0.5), (0.5, -0.5, -0.5), (0.5, -0.5, 0.5), (-0.5, 0.5, 0.5),
-            (-0.5, -0.5, -0.5),
-            (-0.5, -0.5, 0.5), (-0.5, 0.5, -0.5))
-        self.cubeEdges = (
-            (0, 1), (0, 3), (0, 4), (1, 2), (1, 7), (2, 5), (2, 3), (3, 6), (4, 6), (4, 7), (5, 6), (5, 7))
-        self.cubeQuads = ((0, 3, 6, 4), (2, 5, 6, 3), (1, 2, 5, 7), (1, 0, 4, 7), (7, 4, 6, 5), (2, 3, 0, 1))
-
 
     def image_load(self,lox,loy,loz,picture,rotate):
         self.read_texture(picture)
@@ -70,21 +52,20 @@ class glWidget(QGLWidget):
         glPopMatrix()
 
     def keyPressEvent(self, event):
-        print("pressed",event.text())
-        # gluLookAt(2,1,1,0,0,0,0,1,0)
-        self.camera = self.action_keymap.get(event.text())
-        glRotate(self.camera[0],1,0,0)
-        glRotate(self.camera[1],0,1,0)
-        self.update()
+        try:
+            self.camera = self.action_keymap.get(event.text())
+            if event.text() in self.action_keymap.keys():
+                glRotate(self.camera[0],1,0,0)
+                glRotate(self.camera[1],0,1,0)
+                self.update()
+        except:
+            pass
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.image_load(-1,0,0,"../reconstruction/mon_r.jpg",-20)
         self.image_load(1, 0, 0,"../reconstruction/mon_l.jpg",20)
         glFlush()
-
-#   def drawAxes(self):
-
 
     def initializeGL(self):
         glClearDepth(1.0)
@@ -112,45 +93,20 @@ class glWidget(QGLWidget):
             glTranslate(0,0,-1)
         self.update()
 
-    def mousePressEvent(self, event):
-
-        print("pressed")
-        btns = event.buttons()
-        x = event.localPos().x()
-        y = event.localPos().y()
-
-        if btns & Qt.LeftButton:
-            print("left")
-
-        elif btns & (Qt.MidButton):
-            print("middle")
-
-        elif btns & (Qt.RightButton):
-            print("right")
-
-    def mouseReleaseEvent(self, event):
-        # nothing to be done here.
-        print("released")
-        pass
-
     def read_texture(self,picture):
         textureSurface = pygame.image.load(picture)
         textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
         width = textureSurface.get_width()
         height = textureSurface.get_height()
-
         glEnable(GL_TEXTURE_2D)
-        texid = glGenTextures(1)
-
-
+        tex_id = glGenTextures(1)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
                      0, GL_RGBA, GL_UNSIGNED_BYTE, textureData)
-
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        return texid
+        return tex_id
 
 
 if __name__ == '__main__':
