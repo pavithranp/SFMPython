@@ -65,12 +65,11 @@ class glWidget(QGLWidget):
                 glVertex3fv(self.cubeVertices[cubeVertex])
         glEnd()
 
-    def image_load(self,lox,loy,loz,picture):
+    def image_load(self,lox,loy,loz,picture,rotate):
         self.read_texture(picture)
+        glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
-        glRotatef(30, 1.0, 0.0, 1.0)
-        glTranslatef(-250, -250, 0.0)
-        glPopMatrix()
+        glRotated(rotate, 0.0, 1.0, 0.0)
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
         glVertex3f(-1.0+lox, -1.0+loy, 1.0+loz)
@@ -82,6 +81,9 @@ class glWidget(QGLWidget):
         glVertex3f(-1.0+lox, 1.0+loy, 1.0+loz)
         glEnd()
 
+
+        #glTranslatef(-250, -250, 0.0)
+        glPopMatrix()
     def keyPressEvent(self, event):
         action = self.action_keymap.get(str(event.text()))
         if action:
@@ -92,15 +94,13 @@ class glWidget(QGLWidget):
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         #glLoadIdentity()
-        glTranslatef(-0.0, 0.0, -5.0)
-        #glRotatef(10, 10, 10, 10)
-        # glRotatef(10,10,10,10)
-        #glColor3f(1.0, 1.5, 0.0)
+        glTranslatef(-0.0, 0.0, -10.0)
 
-        self.image_load(1,1,1,"dravid.png")
-        self.image_load(2, 1, 1,"ozil.png")
+        self.image_load(-2,1,1,"dravid.png",10)
+        self.image_load(2, 1, 1,"ozil.png",-10)
         glFlush()
 
+#    def drawAxes(self):
 
 
     def initializeGL(self):
