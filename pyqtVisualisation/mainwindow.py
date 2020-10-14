@@ -16,7 +16,9 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__()
         self.widget = glWidget(self)
         # self.button = QPushButton('Test', self)
+        self.widget.setFocusPolicy(Qt.StrongFocus)
         mainLayout = QHBoxLayout()
+
         mainLayout.addWidget(self.widget)
         # mainLayout.addWidget(self.button)
         self.setLayout(mainLayout)
@@ -25,17 +27,16 @@ class MainWindow(QWidget):
 class glWidget(QGLWidget):
 
     def __init__(self, parent):
-        self.action_keymap = {
-            'a': lambda: glTranslate(-1, 0, 0),
-            'd': lambda: glTranslate( 1, 0, 0),
-            'w': lambda: glTranslate( 0, 1, 0),
-            's': lambda: glTranslate( 0,-1, 0),
+        self.zoom = -5
+        self.camera=[0,0]
 
-            # 'a': lambda: glRotate(-5, 0, 1, 0),
-            # 'd': lambda: glRotate(5, 0, 1, 0),
-            # 'W': lambda: glRotate(-5, 1, 0, 0),
-            # 'S': lambda: glRotate( 5, 1, 0, 0),
+        self.action_keymap = {
+            'a': [0,-1],
+            'd': [0,1],
+            'w': [1,0],
+            's': [-1,0],
         }
+
         self.picture = "ozil.png"
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
@@ -50,20 +51,6 @@ class glWidget(QGLWidget):
             (0, 1), (0, 3), (0, 4), (1, 2), (1, 7), (2, 5), (2, 3), (3, 6), (4, 6), (4, 7), (5, 6), (5, 7))
         self.cubeQuads = ((0, 3, 6, 4), (2, 5, 6, 3), (1, 2, 5, 7), (1, 0, 4, 7), (7, 4, 6, 5), (2, 3, 0, 1))
 
-
-    def wireCube(self):
-        glBegin(GL_LINES)
-        for cubeEdge in self.cubeEdges:
-            for cubeVertex in cubeEdge:
-                glVertex3fv(self.cubeVertices[cubeVertex])
-        glEnd()
-
-    def solidCube(self):
-        glBegin(GL_QUADS)
-        for cubeQuad in self.cubeQuads:
-            for cubeVertex in cubeQuad:
-                glVertex3fv(self.cubeVertices[cubeVertex])
-        glEnd()
 
     def image_load(self,lox,loy,loz,picture,rotate):
         self.read_texture(picture)
@@ -80,27 +67,23 @@ class glWidget(QGLWidget):
         glTexCoord2f(0.0, 1.0)
         glVertex3f(-1.0+lox, 1.0+loy, 1.0+loz)
         glEnd()
-
-
-        #glTranslatef(-250, -250, 0.0)
         glPopMatrix()
+
     def keyPressEvent(self, event):
-        action = self.action_keymap.get(str(event.text()))
-        if action:
-            action()
-        self.updateGL()
+        print("pressed",event.text())
+        # gluLookAt(2,1,1,0,0,0,0,1,0)
+        self.camera = self.action_keymap.get(event.text())
+        glRotate(self.camera[0],1,0,0)
+        glRotate(self.camera[1],0,1,0)
+        self.update()
 
     def paintGL(self):
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        #glLoadIdentity()
-        glTranslatef(-0.0, 0.0, -10.0)
-
-        self.image_load(-2,1,1,"dravid.png",10)
-        self.image_load(2, 1, 1,"ozil.png",-10)
+        self.image_load(-1,0,0,"../reconstruction/mon_r.jpg",-20)
+        self.image_load(1, 0, 0,"../reconstruction/mon_l.jpg",20)
         glFlush()
 
-#    def drawAxes(self):
+#   def drawAxes(self):
 
 
     def initializeGL(self):
@@ -111,6 +94,8 @@ class glWidget(QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         gluPerspective(45.0, 1.33, 0.1, 100.0)
+
+        glTranslatef(0.0, 0.0, -10)
         glMatrixMode(GL_MODELVIEW)
 
     def resizeGL(self, width, height):
@@ -118,6 +103,14 @@ class glWidget(QGLWidget):
         self.height = height
         self.aspect = width / height
         glViewport(0, 0, width, height)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+        if delta > 0:
+            glTranslate(0,0,1)
+        else:
+            glTranslate(0,0,-1)
+        self.update()
 
     def mousePressEvent(self, event):
 
