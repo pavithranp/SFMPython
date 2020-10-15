@@ -34,20 +34,44 @@ class glWidget(QGLWidget):
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
 
-    def image_load(self,lox,loy,loz,picture,rotate):
+    def image_load(self,lox,loy,loz,picture,rotate,zoom =0.5):
         self.read_texture(picture)
         glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
         glRotated(rotate, 0.0, 1.0, 0.0)
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
-        glVertex3f(-1.0+lox, -1.0+loy, 1.0+loz)
+        glVertex3f((-1*zoom)+lox, (-1*zoom)+loy, -(1*zoom) +loz)
         glTexCoord2f(1.0, 0.0)
-        glVertex3f(1.0+lox, -1.0+loy, 1.0+loz)
+        glVertex3f((1*zoom)+lox, (-1*zoom)+loy, -(1*zoom) +loz)
         glTexCoord2f(1.0, 1.0)
-        glVertex3f(1.0+lox, 1.0+loy, 1.0+loz)
+        glVertex3f((1*zoom)+lox, (1*zoom)+loy, -(1*zoom) +loz)
         glTexCoord2f(0.0, 1.0)
-        glVertex3f(-1.0+lox, 1.0+loy, 1.0+loz)
+        glVertex3f((-1*zoom)+lox, (1*zoom)+loy, -(1*zoom) +loz)
+        glEnd()
+        glBegin(GL_LINES)
+        glVertex3f(-0.1 + lox, -0.1 + loy, loz)
+        glVertex3f(0.1 + lox, -0.1 + loy, loz)
+        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
+        glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+
+        glVertex3f(-0.1 + lox, -0.1 + loy,  loz)
+        glVertex3f(-0.1 + lox, 0.1 + loy,  loz)
+        glVertex3f(0.1 + lox, -0.1 + loy,  loz)
+        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
+
+        glVertex3f(-(1*zoom) + lox, -(1*zoom) + loy, -(1*zoom) +loz)
+        glVertex3f(-0.1 + lox, -0.1 + loy, loz)
+
+        glVertex3f(-(1*zoom) + lox, (1*zoom) + loy, -(1*zoom) + loz)
+        glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+
+        glVertex3f((1*zoom) + lox, (1*zoom) + loy,-(1*zoom) + loz)
+        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
+
+        glVertex3f((1*zoom) + lox, -(1*zoom) + loy, -(1*zoom) +loz)
+        glVertex3f(0.1 + lox, -0.1 + loy,  loz)
+
         glEnd()
         glPopMatrix()
 
