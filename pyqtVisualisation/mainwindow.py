@@ -49,31 +49,34 @@ class glWidget(QGLWidget):
         glTexCoord2f(0.0, 1.0)
         glVertex3f((-1*zoom)+lox, (1*zoom)+loy, -(1*zoom) +loz)
         glEnd()
+        self.camera_frustum(lox,loy,loz,zoom)
+        glPopMatrix()
+
+    def camera_frustum(self,lox,loy,loz,zoom):
         glBegin(GL_LINES)
-        glVertex3f(-0.1 + lox, -0.1 + loy, loz)
-        glVertex3f(0.1 + lox, -0.1 + loy, loz)
-        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
-        glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+        # glVertex3f(-0.1 + lox, -0.1 + loy, loz)
+        # glVertex3f(0.1 + lox, -0.1 + loy, loz)
+        # glVertex3f(0.1 + lox, 0.1 + loy, loz)
+        # glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+        #
+        # glVertex3f(-0.1 + lox, -0.1 + loy, loz)
+        # glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+        # glVertex3f(0.1 + lox, -0.1 + loy, loz)
+        # glVertex3f(0.1 + lox, 0.1 + loy, loz)
 
-        glVertex3f(-0.1 + lox, -0.1 + loy,  loz)
-        glVertex3f(-0.1 + lox, 0.1 + loy,  loz)
-        glVertex3f(0.1 + lox, -0.1 + loy,  loz)
-        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
+        glVertex3f(-(1 * zoom) + lox, -(1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(lox, loy, loz)
 
-        glVertex3f(-(1*zoom) + lox, -(1*zoom) + loy, -(1*zoom) +loz)
-        glVertex3f(-0.1 + lox, -0.1 + loy, loz)
+        glVertex3f(-(1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(lox, loy, loz)
 
-        glVertex3f(-(1*zoom) + lox, (1*zoom) + loy, -(1*zoom) + loz)
-        glVertex3f(-0.1 + lox, 0.1 + loy, loz)
+        glVertex3f((1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(lox, loy, loz)
 
-        glVertex3f((1*zoom) + lox, (1*zoom) + loy,-(1*zoom) + loz)
-        glVertex3f(0.1 + lox, 0.1 + loy,  loz)
-
-        glVertex3f((1*zoom) + lox, -(1*zoom) + loy, -(1*zoom) +loz)
-        glVertex3f(0.1 + lox, -0.1 + loy,  loz)
+        glVertex3f((1 * zoom) + lox, -(1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(lox, loy, loz)
 
         glEnd()
-        glPopMatrix()
 
     def keyPressEvent(self, event):
         try:
@@ -134,7 +137,7 @@ class glWidget(QGLWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(['QT image'])
+    app = QApplication(['Reconstruction'])
     window = MainWindow()
     window.show()
     app.exec_()
