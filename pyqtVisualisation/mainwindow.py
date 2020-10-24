@@ -4,11 +4,13 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtOpenGL import *
 import pygame
+from PIL import Image
+import numpy as np
 
 MAX_IMAGE_DIM = 1920
 ccd_width = 9.96  # mm for nokia 7 plus
-focal_length = 36  # mm from image properties
-cam_focalLength = MAX_IMAGE_DIM * focal_length / ccd_width
+focal_length = 4.28  # mm from image properties
+
 
 
 class MainWindow(QWidget):
@@ -39,25 +41,26 @@ class glWidget(QGLWidget):
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
 
-    def image_load(self, lox, loy, loz, picture, rotate, zoom=0.5):
-        self.read_texture(picture)
+    def image_load(self, lox, loy, loz, picture, rotate, zoom=1):
+        _, aspect, max_dim = self.read_texture(picture)
+        cam_focalLength = focal_length / ccd_width
         glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
         glRotated(rotate, 0.0, 1.0, 0.0)
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
-        glVertex3f((-1 * zoom) + lox, (-1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((-1 * zoom*aspect) + lox, (-1 * zoom) + loy, -(1 * cam_focalLength) + loz)
         glTexCoord2f(1.0, 0.0)
-        glVertex3f((1 * zoom) + lox, (-1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((1 * zoom*aspect) + lox, (-1 * zoom) + loy, -(1 * cam_focalLength) + loz)
         glTexCoord2f(1.0, 1.0)
-        glVertex3f((1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((1 * zoom*aspect) + lox, (1 * zoom) + loy, -(1 * cam_focalLength) + loz)
         glTexCoord2f(0.0, 1.0)
-        glVertex3f((-1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((-1 * zoom*aspect) + lox, (1 * zoom) + loy, -(1 * cam_focalLength) + loz)
         glEnd()
-        self.camera_frustum(lox, loy, loz, zoom)
+        self.camera_frustum(lox, loy, loz, zoom,aspect,cam_focalLength)
         glPopMatrix()
 
-    def camera_frustum(self, lox, loy, loz, zoom):
+    def camera_frustum(self, lox, loy, loz, zoom,aspect,focal):
         glBegin(GL_LINES)
         # glVertex3f(-0.1 + lox, -0.1 + loy, loz)
         # glVertex3f(0.1 + lox, -0.1 + loy, loz)
@@ -69,16 +72,16 @@ class glWidget(QGLWidget):
         # glVertex3f(0.1 + lox, -0.1 + loy, loz)
         # glVertex3f(0.1 + lox, 0.1 + loy, loz)
 
-        glVertex3f(-(1 * zoom) + lox, -(1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(-(1 * zoom*aspect) + lox, -(1 * zoom) + loy, -(1 * focal) + loz)
         glVertex3f(lox, loy, loz)
 
-        glVertex3f(-(1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f(-(1 * zoom*aspect) + lox, (1 * zoom) + loy, -(1 * focal) + loz)
         glVertex3f(lox, loy, loz)
 
-        glVertex3f((1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((1 * zoom*aspect) + lox, (1 * zoom) + loy, -(1 * focal) + loz)
         glVertex3f(lox, loy, loz)
 
-        glVertex3f((1 * zoom) + lox, -(1 * zoom) + loy, -(1 * zoom) + loz)
+        glVertex3f((1 * zoom*aspect) + lox, -(1 * zoom) + loy, -(1 * focal) + loz)
         glVertex3f(lox, loy, loz)
 
         glEnd()
@@ -130,6 +133,14 @@ class glWidget(QGLWidget):
         textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
         width = textureSurface.get_width()
         height = textureSurface.get_height()
+        aspect = width / height
+        # im = Image.open(picture).transpose(Image.FLIP_TOP_BOTTOM);
+        # imageData = np.array(list(im.getdata()), numpy.uint8)
+        # width, height = im.size
+
+        glEnable(GL_TEXTURE_2D)
+        texname = glGenTextures(1)
+
         glEnable(GL_TEXTURE_2D)
         tex_id = glGenTextures(1)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
@@ -138,7 +149,7 @@ class glWidget(QGLWidget):
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        return tex_id
+        return tex_id, aspect, max(width,height)
 
 
 if __name__ == '__main__':
