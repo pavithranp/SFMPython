@@ -5,6 +5,11 @@ from PyQt5.QtCore import *
 from PyQt5.QtOpenGL import *
 import pygame
 
+MAX_IMAGE_DIM = 1920
+ccd_width = 9.96  # mm for nokia 7 plus
+focal_length = 36  # mm from image properties
+cam_focalLength = MAX_IMAGE_DIM * focal_length / ccd_width
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -23,36 +28,36 @@ class glWidget(QGLWidget):
 
     def __init__(self, parent):
         self.zoom = -5
-        self.camera=[0,0]
+        self.camera = [0, 0]
 
         self.action_keymap = {
-            'a': [0,-1],
-            'd': [0,1],
-            'w': [1,0],
-            's': [-1,0],
+            'a': [0, -1],
+            'd': [0, 1],
+            'w': [1, 0],
+            's': [-1, 0],
         }
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
 
-    def image_load(self,lox,loy,loz,picture,rotate,zoom =0.5):
+    def image_load(self, lox, loy, loz, picture, rotate, zoom=0.5):
         self.read_texture(picture)
         glMatrixMode(GL_MODELVIEW)
         glPushMatrix()
         glRotated(rotate, 0.0, 1.0, 0.0)
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
-        glVertex3f((-1*zoom)+lox, (-1*zoom)+loy, -(1*zoom) +loz)
+        glVertex3f((-1 * zoom) + lox, (-1 * zoom) + loy, -(1 * zoom) + loz)
         glTexCoord2f(1.0, 0.0)
-        glVertex3f((1*zoom)+lox, (-1*zoom)+loy, -(1*zoom) +loz)
+        glVertex3f((1 * zoom) + lox, (-1 * zoom) + loy, -(1 * zoom) + loz)
         glTexCoord2f(1.0, 1.0)
-        glVertex3f((1*zoom)+lox, (1*zoom)+loy, -(1*zoom) +loz)
+        glVertex3f((1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
         glTexCoord2f(0.0, 1.0)
-        glVertex3f((-1*zoom)+lox, (1*zoom)+loy, -(1*zoom) +loz)
+        glVertex3f((-1 * zoom) + lox, (1 * zoom) + loy, -(1 * zoom) + loz)
         glEnd()
-        self.camera_frustum(lox,loy,loz,zoom)
+        self.camera_frustum(lox, loy, loz, zoom)
         glPopMatrix()
 
-    def camera_frustum(self,lox,loy,loz,zoom):
+    def camera_frustum(self, lox, loy, loz, zoom):
         glBegin(GL_LINES)
         # glVertex3f(-0.1 + lox, -0.1 + loy, loz)
         # glVertex3f(0.1 + lox, -0.1 + loy, loz)
@@ -82,16 +87,16 @@ class glWidget(QGLWidget):
         try:
             self.camera = self.action_keymap.get(event.text())
             if event.text() in self.action_keymap.keys():
-                glRotate(self.camera[0],1,0,0)
-                glRotate(self.camera[1],0,1,0)
+                glRotate(self.camera[0], 1, 0, 0)
+                glRotate(self.camera[1], 0, 1, 0)
                 self.update()
         except:
             pass
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        self.image_load(-1,0,0,"../reconstruction/mon_r.jpg",-20)
-        self.image_load(1, 0, 0,"../reconstruction/mon_l.jpg",20)
+        self.image_load(-1, 0, 0, "../reconstruction/mon_r.jpg", -20)
+        self.image_load(1, 0, 0, "../reconstruction/mon_l.jpg", 20)
         glFlush()
 
     def initializeGL(self):
@@ -115,12 +120,12 @@ class glWidget(QGLWidget):
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
         if delta > 0:
-            glTranslate(0,0,1)
+            glTranslate(0, 0, 1)
         else:
-            glTranslate(0,0,-1)
+            glTranslate(0, 0, -1)
         self.update()
 
-    def read_texture(self,picture):
+    def read_texture(self, picture):
         textureSurface = pygame.image.load(picture)
         textureData = pygame.image.tostring(textureSurface, "RGBA", 1)
         width = textureSurface.get_width()
