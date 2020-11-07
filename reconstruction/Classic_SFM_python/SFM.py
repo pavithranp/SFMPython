@@ -73,18 +73,20 @@ for i in range(M2_list.shape[2]):
 
 points_3d_visualize(P_best)
 
-# for x,y in zip(pts1,pts2):
-#     dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
-#     dst = cv.circle(dst, tuple(x), 5, (255,255,0), 1)
-#     dst = cv.circle(dst, tuple(y), 5, (0,255,255), 1)
-#
-# while(1):
-#     cv.imshow("weighted",dst)
-#     k = cv.waitKey(33)
-#     if k==27:    # Esc key to stop
-#         break
-#     elif k==-1:  # normally -1 returned,so don't print it
-#         continue
+for x,y in zip(pts1,pts2):
+    dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
+    dst = cv.circle(dst, tuple(x), 5, (255,255,0), 1)
+    dst = cv.drawMarker(dst, tuple(y), (0, 0, 255),1)
+                   # markerType=mt, markerSize=30, thickness=2, line_type=cv2.LINE_AA)
+
+while(1):
+    cv.imshow("weighted",dst)
+
+    k = cv.waitKey(33)
+    if k==27:    # Esc key to stop
+        break
+    elif k==-1:  # normally -1 returned,so don't print it
+        continue
 
 
 
