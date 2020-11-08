@@ -22,8 +22,26 @@ def findRandC(essential_matrix):
 def essentialMatrix(F, K):
     E = K.T.dot(F).dot(K)
     return E
+def getIfromRGB(rgb):
+    red = rgb[0]
+    green = rgb[1]
+    blue = rgb[2]
+    RGBint = (red<<16) + (green<<8) + blue
+    return RGBint
+def keypointColor(img1,img2,pts1,pts2):
+    # x=np.array()
+    colors=[]
 
+    for x,y in zip(pts1,pts2):
+        k = img1[x[1], x[0]]
+        # inte = getIfromRGB(k)
+        # h = "#"+hex(inte).upper()[2:]
 
+        colors.append([k[2],k[1],k[0]])
+        # if any(img1[x[1],x[0]] != img2[y[1],y[0]]):
+        #     print("image1:",img1[x[1],x[0]])
+        #     print("image2:",img2[y[1], y[0]])
+    return np.array(colors)
 def cameraPose(E):
     U, S, V = np.linalg.svd(E)
     m = S[:2].mean()
@@ -69,11 +87,8 @@ def triangulate(C1, pts1, C2, pts2):
     # print('P_i: ', P_i)
 
     # MULTIPLYING TOGETHER WIH ALL ELEMENT OF Ps
-    pts1_out = np.matmul(C1, P_i.T)
-    pts2_out = np.matmul(C2, P_i.T)
-
-    pts1_out = pts1_out.T
-    pts2_out = pts2_out.T
+    pts1_out = np.matmul(C1, P_i.T).T
+    pts2_out = np.matmul(C2, P_i.T).T
 
     # NORMALIZING
     for i in range(pts1_out.shape[0]):
@@ -97,7 +112,7 @@ def triangulate(C1, pts1, C2, pts2):
     return P_i, reprojection_err
 
 
-def points_3d_visualize(P_best):
+def points_3d_visualize(P_best,colors):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.set_aspect('auto')
@@ -106,7 +121,7 @@ def points_3d_visualize(P_best):
     Y = P_best[:, 1]
     Z = P_best[:, 2]
 
-    ax.scatter(X, Y, Z, s=1.7)
+    ax.scatter(X, Y, Z, s=5,c=colors/255.0)
 
     max_range = np.array([X.max() - X.min(), Y.max() - Y.min(), Z.max() - Z.min()]).max() / 2.0
 

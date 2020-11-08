@@ -14,6 +14,6 @@
 ### Key points matched
 ![](reconstruction/example_data/keypointsmatched.png)
 
-### matplotlib visualization
-![](reconstruction/example_data/matplotpreview.png)
+### Matplotlib Visualization
+![](reconstruction/example_data/triangulation.gif)
 

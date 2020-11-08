@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-from Classic_SFM_python.util import triangulate,findRandC, essentialMatrix,points_3d_visualize,cameraPose
+from Classic_SFM_python.util import triangulate, essentialMatrix,points_3d_visualize,cameraPose,keypointColor
 #camera intrinsics
 f = 720
 
@@ -57,6 +57,9 @@ C2_best = np.zeros((3, 4))
 err_best = np.inf
 error_list = []
 
+# get_color
+colors = keypointColor(img1,img2,pts1,pts2)
+
 for i in range(M2_list.shape[2]):
     M2 = M2_list[:, :, i]
     C2 = k.dot(M2)
@@ -71,22 +74,22 @@ for i in range(M2_list.shape[2]):
 
 
 
-points_3d_visualize(P_best)
+points_3d_visualize(P_best,colors)
 
-for x,y in zip(pts1,pts2):
-    dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
-    dst = cv.circle(dst, tuple(x), 5, (255,255,0), 1)
-    dst = cv.drawMarker(dst, tuple(y), (0, 0, 255),1)
-                   # markerType=mt, markerSize=30, thickness=2, line_type=cv2.LINE_AA)
-
-while(1):
-    cv.imshow("weighted",dst)
-
-    k = cv.waitKey(33)
-    if k==27:    # Esc key to stop
-        break
-    elif k==-1:  # normally -1 returned,so don't print it
-        continue
+# for x,y in zip(pts1,pts2):
+#     # dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
+#     dst = cv.circle(dst, tuple(x), 5, (255,255,0), 1)
+#     dst = cv.drawMarker(dst, tuple(y), (0, 0, 255),1)
+#                    # markerType=mt, markerSize=30, thickness=2, line_type=cv2.LINE_AA)
+#
+# while(1):
+#     cv.imshow("weighted",dst)
+#
+#     k = cv.waitKey(33)
+#     if k==27:    # Esc key to stop
+#         break
+#     elif k==-1:  # normally -1 returned,so don't print it
+#         continue
 
 
 
