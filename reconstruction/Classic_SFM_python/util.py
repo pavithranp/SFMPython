@@ -3,6 +3,7 @@ import scipy
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+
 def findRandC(essential_matrix):
     U, s, V = np.linalg.svd(essential_matrix, full_matrices=True)
     W = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
@@ -22,26 +23,32 @@ def findRandC(essential_matrix):
 def essentialMatrix(F, K):
     E = K.T.dot(F).dot(K)
     return E
+
+
 def getIfromRGB(rgb):
     red = rgb[0]
     green = rgb[1]
     blue = rgb[2]
-    RGBint = (red<<16) + (green<<8) + blue
+    RGBint = (red << 16) + (green << 8) + blue
     return RGBint
-def keypointColor(img1,img2,pts1,pts2):
-    # x=np.array()
-    colors=[]
 
-    for x,y in zip(pts1,pts2):
+
+def keypointColor(img1, img2, pts1, pts2):
+    # x=np.array()
+    colors = []
+
+    for x, y in zip(pts1, pts2):
         k = img1[x[1], x[0]]
         # inte = getIfromRGB(k)
         # h = "#"+hex(inte).upper()[2:]
 
-        colors.append([k[2],k[1],k[0]])
+        colors.append([k[2], k[1], k[0]])
         # if any(img1[x[1],x[0]] != img2[y[1],y[0]]):
         #     print("image1:",img1[x[1],x[0]])
         #     print("image2:",img2[y[1], y[0]])
     return np.array(colors)
+
+
 def cameraPose(E):
     U, S, V = np.linalg.svd(E)
     m = S[:2].mean()
@@ -52,7 +59,7 @@ def cameraPose(E):
     if np.linalg.det(U.dot(W).dot(V)) < 0:
         W = -W
 
-    # possible orientations
+    # possible orientations of the camera
     M2s = np.zeros([3, 4, 4])
     M2s[:, :, 0] = np.concatenate([U.dot(W).dot(V), U[:, 2].reshape([-1, 1]) / abs(U[:, 2]).max()], axis=1)
     M2s[:, :, 1] = np.concatenate([U.dot(W).dot(V), -U[:, 2].reshape([-1, 1]) / abs(U[:, 2]).max()], axis=1)
@@ -75,10 +82,10 @@ def triangulate(C1, pts1, C2, pts2):
                       pts2[i, 0] * C2[2, :] - C2[0, :],
                       pts2[i, 1] * C2[2, :] - C2[1, :]])
 
-        # print('A shape: ', A.shape)
+        # SVD to solve for 3D coordinate
         u, s, v = np.linalg.svd(A)
         X = v.T[:, -1]
-        # NORMALIZING 4->3 removing homogenous coordinates
+        # 4->3 coordinates removing homogenous coordinates
         X = X / X[-1]
         P_i.append(X)
 
@@ -86,11 +93,10 @@ def triangulate(C1, pts1, C2, pts2):
 
     # print('P_i: ', P_i)
 
-    # MULTIPLYING TOGETHER WIH ALL ELEMENT OF Ps
+    # For reprojection error calculation
     pts1_out = np.matmul(C1, P_i.T).T
     pts2_out = np.matmul(C2, P_i.T).T
 
-    # NORMALIZING
     for i in range(pts1_out.shape[0]):
         pts1_out[i, :] = pts1_out[i, :] / pts1_out[i, -1]
         pts2_out[i, :] = pts2_out[i, :] / pts2_out[i, -1]
@@ -99,7 +105,7 @@ def triangulate(C1, pts1, C2, pts2):
     pts1_out = pts1_out[:, :-1]
     pts2_out = pts2_out[:, :-1]
 
-    # CALCULATING REPROJECTION ERROR
+    # cumulative reprojection error
     reprojection_err = 0
     for i in range(pts1_out.shape[0]):
         reprojection_err = reprojection_err + np.linalg.norm(pts1[i, :] - pts1_out[i, :]) ** 2 + np.linalg.norm(
@@ -112,7 +118,7 @@ def triangulate(C1, pts1, C2, pts2):
     return P_i, reprojection_err
 
 
-def points_3d_visualize(P_best,colors,s):
+def points_3d_visualize(P_best, colors, s):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.set_aspect('auto')
@@ -121,7 +127,7 @@ def points_3d_visualize(P_best,colors,s):
     Y = P_best[:, 1]
     Z = P_best[:, 2]
 
-    ax.scatter(X, Y, Z, s=s,c=colors/255.0)
+    ax.scatter(X, Y, Z, s=s, c=colors / 255.0)
 
     max_range = np.array([X.max() - X.min(), Y.max() - Y.min(), Z.max() - Z.min()]).max() / 2.0
 

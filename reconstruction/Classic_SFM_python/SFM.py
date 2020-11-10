@@ -16,13 +16,15 @@ prev_cam = np.array([[1, 0, 0, 0],
                      [0, 0, 1, 0]])
 
 dir = 'example_data/hilltemple/'
+# place images in this directory
 images = os.listdir(dir)
 
 # images = ['vlcsnap-2020-10-26-10h32m43s388.png',
 #           'vlcsnap-2020-10-26-10h32m50s487.png', 'vlcsnap-2020-10-26-10h32m56s617.png']
 keypoints = np.empty((0, 3))
 pointcolor = np.empty((0, 3))
-for i in range(len(images) - 1):
+
+for i in range(len(images) - 1): # loop through images and compare two at a time
     print("matching ",images[i],"and",images[i + 1])
     img1 = cv.imread(dir + images[i], 1)  # queryimage # left image
     img2 = cv.imread(dir + images[i + 1], 1)  # trainimage # right image
@@ -39,15 +41,16 @@ for i in range(len(images) - 1):
     good = []
     pts1 = []
     pts2 = []
-    # ratio test as per Lowe's paper
+    # filter points that are too far away
     for i, (m, n) in enumerate(matches):
-        if m.distance < 0.9 * n.distance:
+        if m.distance < 0.8 * n.distance:
             good.append(m)
             pts2.append(kp2[m.trainIdx].pt)
             pts1.append(kp1[m.queryIdx].pt)
 
     pts1 = np.int32(pts1)
     pts2 = np.int32(pts2)
+    # get fundamental matrix from matched points
     F, mask = cv.findFundamentalMat(pts1, pts2, cv.FM_LMEDS)
     # We select only inlier points
     pts1 = pts1[mask.ravel() == 1]
@@ -56,10 +59,10 @@ for i in range(len(images) - 1):
     dst = cv.addWeighted(img1, 0.5, img2, 0.5, 5)
 
     E = essentialMatrix(F, k)
-    # CALCULATE M1 and M2
+    # Calculate M1 and M2 , M2 could be any of the 4 possible relative orientation pair of cameras
     M1 = prev_cam
     M2_list = cameraPose(E)
-    #  TRIANGULATION
+
     C1 = k.dot(M1)
 
     P_best = np.zeros((pts1.shape[0], 3))
@@ -71,6 +74,7 @@ for i in range(len(images) - 1):
     # get_color
     colors = keypointColor(img1, img2, pts1, pts2)
 
+    # try all possible orientations and choose the one with most points in front of both the cameras
     for i in range(M2_list.shape[2]):
         M2 = M2_list[:, :, i]
         C2 = k.dot(M2)
@@ -86,6 +90,7 @@ for i in range(len(images) - 1):
     keypoints = np.vstack((keypoints, P_best))
     pointcolor = np.vstack((pointcolor, colors))
     prev_cam = M2_best
+# matplot lib visualization, not recommended when there are more than 3000 points, visualization may become choppy
 points_3d_visualize(keypoints, pointcolor,s=1.7)
 
 # for x,y in zip(pts1,pts2):
