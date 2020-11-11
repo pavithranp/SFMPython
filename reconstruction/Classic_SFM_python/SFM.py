@@ -11,11 +11,12 @@ k[1][1] = f
 k[0][2] = 640
 k[1][2] = 360
 
-prev_cam = np.array([[1, 0, 0, 0],
+init_cam = np.array([[1, 0, 0, 0],
                      [0, 1, 0, 0],
                      [0, 0, 1, 0]])
-
-dir = 'example_data/hilltemple/'
+camera_pos = []
+camera_pos.append(init_cam)
+dir = 'example_data/hampi/'
 # place images in this directory
 images = os.listdir(dir)
 
@@ -24,18 +25,23 @@ images = os.listdir(dir)
 keypoints = np.empty((0, 3))
 pointcolor = np.empty((0, 3))
 
-for i in range(len(images) - 1): # loop through images and compare two at a time
-    print("matching ",images[i],"and",images[i + 1])
-    img1 = cv.imread(dir + images[i], 1)  # queryimage # left image
-    img2 = cv.imread(dir + images[i + 1], 1)  # trainimage # right image
+for j in range(len(images) - 1): # loop through images and compare two at a time
+    print("matching ",images[j],"and",images[j + 1])
+    img1 = cv.imread(dir + images[j], 1)  # queryimage # left image
+    img2 = cv.imread(dir + images[j + 1], 1)  # trainimage # right image
     sift = cv.xfeatures2d.SIFT_create()
+    # akaze = cv.AKAZE_create()
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1, None)
     kp2, des2 = sift.detectAndCompute(img2, None)
+    # kp1, des1 = akaze.detectAndCompute(img1, None)
+    # kp2, des2 = akaze.detectAndCompute(img2, None)
     # FLANN parameters
     FLANN_INDEX_KDTREE = 1
     index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
     search_params = dict(checks=50)
+    # bf = cv.BFMatcher(cv.NORM_HAMMING)
+    # matches = bf.knnMatch(des1,des2, k=2)
     flann = cv.FlannBasedMatcher(index_params, search_params)
     matches = flann.knnMatch(des1, des2, k=2)
     good = []
@@ -43,7 +49,7 @@ for i in range(len(images) - 1): # loop through images and compare two at a time
     pts2 = []
     # filter points that are too far away
     for i, (m, n) in enumerate(matches):
-        if m.distance < 0.8 * n.distance:
+        if m.distance < 0.7 * n.distance:
             good.append(m)
             pts2.append(kp2[m.trainIdx].pt)
             pts1.append(kp1[m.queryIdx].pt)
@@ -60,7 +66,7 @@ for i in range(len(images) - 1): # loop through images and compare two at a time
 
     E = essentialMatrix(F, k)
     # Calculate M1 and M2 , M2 could be any of the 4 possible relative orientation pair of cameras
-    M1 = prev_cam
+    M1 = camera_pos[j]
     M2_list = cameraPose(E)
 
     C1 = k.dot(M1)
@@ -72,29 +78,41 @@ for i in range(len(images) - 1): # loop through images and compare two at a time
     error_list = []
 
     # get_color
-    colors = keypointColor(img1, img2, pts1, pts2)
-
+    # colors = keypointColor(img1, img2, pts1, pts2)
+    cmin =0
     # try all possible orientations and choose the one with most points in front of both the cameras
     for i in range(M2_list.shape[2]):
+        c=0
         M2 = M2_list[:, :, i]
         C2 = k.dot(M2)
-        P_i, err = triangulate(C1, pts1, C2, pts2)
+        P_i, err, color = triangulate(C1, pts1, C2, pts2,img1)
+
         error_list.append(err)
         z_list = P_i[:, 2]
-        if all(z > 0 for z in z_list):
+        for i,z in enumerate(z_list):
+            if z > 0:
+                # np.delete(P_i,i)
+                c+=1
+
+        if c > cmin:
+            cmin = c
+            colors=color
             err_best = err
             P_best = P_i
             M2_best = M2
             C2_best = C2
+    print(cmin)
+    # P_best = P_best[np.where(P_best[:,2]<100)]
     # keypoints.append(P_best)
     keypoints = np.vstack((keypoints, P_best))
     pointcolor = np.vstack((pointcolor, colors))
-    prev_cam = M2_best
+    camera_pos.append(M2_best)
 # matplot lib visualization, not recommended when there are more than 3000 points, visualization may become choppy
-points_3d_visualize(keypoints, pointcolor,s=1.7)
+points_3d_visualize(keypoints, pointcolor,camera_pos, f,img1,s=1.7)
+
 
 # for x,y in zip(pts1,pts2):
-#     # dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
+#     dst = cv.line(dst, tuple(x),tuple(y) , (0,255,0), 1)
 #     dst = cv.circle(dst, tuple(x), 5, (255,255,0), 1)
 #     dst = cv.drawMarker(dst, tuple(y), (0, 0, 255),1)
 #                    # markerType=mt, markerSize=30, thickness=2, line_type=cv2.LINE_AA)

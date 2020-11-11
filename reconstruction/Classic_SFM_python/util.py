@@ -68,14 +68,14 @@ def cameraPose(E):
     return M2s
 
 
-def triangulate(C1, pts1, C2, pts2):
+def triangulate(C1, pts1, C2, pts2,img1):
     # Subtract RHS from LHS and equate to 0
     # Take X common to get AX=0
     # Solve for X with SVD
     # for 2 points we have four equation
 
     P_i = []
-
+    color =[]
     for i in range(pts1.shape[0]):
         A = np.array([pts1[i, 0] * C1[2, :] - C1[0, :],
                       pts1[i, 1] * C1[2, :] - C1[1, :],
@@ -87,7 +87,12 @@ def triangulate(C1, pts1, C2, pts2):
         X = v.T[:, -1]
         # 4->3 coordinates removing homogenous coordinates
         X = X / X[-1]
-        P_i.append(X)
+        if X[0]>100:
+            continue
+        else:
+            P_i.append(X)
+            k = img1[pts1[i,1], pts1[i,0]]
+            color.append([k[2],k[1],k[0]])
 
     P_i = np.asarray(P_i)
 
@@ -100,6 +105,7 @@ def triangulate(C1, pts1, C2, pts2):
     for i in range(pts1_out.shape[0]):
         pts1_out[i, :] = pts1_out[i, :] / pts1_out[i, -1]
         pts2_out[i, :] = pts2_out[i, :] / pts2_out[i, -1]
+
 
     # NON - HOMOGENIZING
     pts1_out = pts1_out[:, :-1]
@@ -115,10 +121,10 @@ def triangulate(C1, pts1, C2, pts2):
     # NON-HOMOGENIZING
     P_i = P_i[:, :-1]
 
-    return P_i, reprojection_err
+    return P_i, reprojection_err, np.array(color)
 
 
-def points_3d_visualize(P_best, colors, s):
+def points_3d_visualize(P_best, colors,cams ,f, img1, s):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.set_aspect('auto')
@@ -127,15 +133,49 @@ def points_3d_visualize(P_best, colors, s):
     Y = P_best[:, 1]
     Z = P_best[:, 2]
 
+    for cam in cams:
+
+        V = getCamera(cam, img1.shape[1], img1.shape[0], f, 0.002)
+
+        xi, yi, zi = V[0, [0, 4]], V[1, [0, 4]], V[2, [0, 4]]
+        ax.plot(xi, yi, zi)
+        xi, yi, zi = V[0, [0, 5]], V[1, [0, 5]], V[2, [0, 5]]
+        ax.plot(xi, yi, zi)
+        xi, yi, zi = V[0, [0, 6]], V[1, [0, 6]], V[2, [0, 6]]
+        ax.plot(xi, yi, zi)
+        xi, yi, zi = V[0, [0, 7]], V[1, [0, 7]], V[2, [0, 7]]
+        ax.plot(xi, yi, zi)
+        ax.plot(V[0, [4, 5, 6, 7, 4]], V[1, [4, 5, 6, 7, 4]], V[2, [4, 5, 6, 7, 4]])
+
     ax.scatter(X, Y, Z, s=s, c=colors / 255.0)
 
-    max_range = np.array([X.max() - X.min(), Y.max() - Y.min(), Z.max() - Z.min()]).max() / 2.0
-
+    # max_range = np.array([X.max() - X.min(), Y.max() - Y.min(), Z.max() - Z.min()]).max() / 2.0
+    max_range = 20
     mid_x = (X.max() + X.min()) * 0.5
     mid_y = (Y.max() + Y.min()) * 0.5
     mid_z = (Z.max() + Z.min()) * 0.5
-    # ax.set_xlim(mid_x - max_range, mid_x + max_range)
-    # ax.set_ylim(mid_y - max_range, mid_y + max_range)
-    # ax.set_zlim(mid_z - max_range, mid_z + max_range)
+    ax.set_xlim(mid_x - max_range, mid_x + max_range)
+    ax.set_ylim(mid_y - max_range, mid_y + max_range)
+    ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
     plt.show()
+
+def getCamera(Rt, w, h, f, scale):
+    V = np.array([
+        [0, 0, 0, f, -(w * 0.5), (w * 0.5), (w * 0.5), -(w * 0.5)],
+        [0, 0, f, 0, -(h * 0.5), -(h * 0.5), (h * 0.5), (h * 0.5)],
+        [0, f, 0, 0, f, f, f, f]
+        ])
+    V = scale * V
+    V = transformPtsByRt(V, Rt, True)
+    return V
+
+
+def transformPtsByRt(X3D, Rt, isInverse=True):
+    repMat = np.repeat(Rt[:, 3, np.newaxis], X3D.shape[1], axis=1)
+
+    # if isInverse:
+    return np.dot( np.transpose(Rt[:,0:3]) , (X3D - repMat ) )
+    # else:
+    #     Y3D = np.dot( Rt[:,0:3] , X3D) + repMat
+    # return Y3D
