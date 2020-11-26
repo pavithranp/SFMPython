@@ -147,7 +147,7 @@ def points_3d_visualize(P_best, colors,cams ,f, img1, s):
         ax.plot(xi, yi, zi)
         ax.plot(V[0, [4, 5, 6, 7, 4]], V[1, [4, 5, 6, 7, 4]], V[2, [4, 5, 6, 7, 4]])
 
-    ax.scatter(X, Y, Z, s=s, c=colors / 255.0)
+    # ax.scatter(X, Y, Z, s=s, c=colors / 255.0)
 
     # max_range = np.array([X.max() - X.min(), Y.max() - Y.min(), Z.max() - Z.min()]).max() / 2.0
     max_range = 20

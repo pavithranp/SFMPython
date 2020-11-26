@@ -27,7 +27,7 @@ pointcolor = np.empty((0, 3))
 
 for j in range(len(images) - 1): # loop through images and compare two at a time
     print("matching ",images[j],"and",images[j + 1])
-    img1 = cv.imread(dir + images[j], 1)  # queryimage # left image
+    img1 = cv.imread(dir + images[0], 1)  # queryimage # left image
     img2 = cv.imread(dir + images[j + 1], 1)  # trainimage # right image
     sift = cv.xfeatures2d.SIFT_create()
     # akaze = cv.AKAZE_create()
@@ -66,7 +66,7 @@ for j in range(len(images) - 1): # loop through images and compare two at a time
 
     E = essentialMatrix(F, k)
     # Calculate M1 and M2 , M2 could be any of the 4 possible relative orientation pair of cameras
-    M1 = camera_pos[j]
+    M1 = camera_pos[0]
     M2_list = cameraPose(E)
 
     C1 = k.dot(M1)

@@ -1,3 +1,0 @@
-/media/pavithran/DATA/CPCV/multiview/gl_window/reconstruction/CMakeFiles/rebuild_cache.dir
-/media/pavithran/DATA/CPCV/multiview/gl_window/reconstruction/CMakeFiles/keypoint.dir
-/media/pavithran/DATA/CPCV/multiview/gl_window/reconstruction/CMakeFiles/edit_cache.dir
